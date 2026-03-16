@@ -2,18 +2,50 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import { TargetAudience, StrategyResponse, CharacterConfig, BorderStyle } from "../types";
 
+/**
+ * Helper to get the API key from various sources with priority.
+ * 1. Environment variables (AI Studio or Build-time env)
+ * 2. LocalStorage (User-provided key for deployed environments)
+ */
+const getApiKey = (): string | null => {
+  // Check environment variables
+  // Note: Vite replaces these strings at build time
+  const envKey = process.env.API_KEY || process.env.GEMINI_API_KEY;
+  
+  // Ensure it's a valid non-empty string and not the literal "undefined" or "null"
+  if (envKey && envKey !== 'undefined' && envKey !== 'null' && envKey.trim() !== '') {
+    return envKey.trim();
+  }
+
+  // Check LocalStorage
+  try {
+    const localKey = localStorage.getItem('ZOOP_GEMINI_API_KEY');
+    if (localKey && localKey.trim() !== '') {
+      return localKey.trim();
+    }
+  } catch (e) {
+    console.error("LocalStorage access failed:", e);
+  }
+
+  return null;
+};
+
 export const ensureApiKey = async (): Promise<void> => {
   if (window.aistudio) {
     const hasKey = await window.aistudio.hasSelectedApiKey();
     if (!hasKey) {
       await window.aistudio.openSelectKey();
     }
+  } else {
+    const apiKey = getApiKey();
+    if (!apiKey) {
+      throw new Error("API 키가 설정되지 않았습니다. 상단의 'API 키 설정' 버튼을 통해 키를 입력해주세요.");
+    }
   }
 };
 
 const getClient = () => {
-  // Use the API key from the environment variable (injected by AI Studio after selection)
-  const apiKey = process.env.API_KEY || process.env.GEMINI_API_KEY;
+  const apiKey = getApiKey();
 
   if (!apiKey) {
     throw new Error("API 키가 설정되지 않았습니다. 상단의 'API 키 선택' 버튼을 통해 키를 설정해주세요.");
