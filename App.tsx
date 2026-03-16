@@ -232,6 +232,7 @@ const App: React.FC = () => {
       <SettingsModal
         isOpen={isSettingsOpen}
         onClose={() => setIsSettingsOpen(false)}
+        onSave={() => setError(null)}
       />
     </div>
   );
