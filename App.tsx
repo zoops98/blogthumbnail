@@ -7,6 +7,7 @@ import { CharacterSettings } from './components/CharacterSettings';
 import { StrategyView } from './components/StrategyView';
 import { ResultView } from './components/ResultView';
 import { HelpModal } from './components/HelpModal';
+import { SettingsModal } from './components/SettingsModal';
 import { AppStep, TargetAudience, StrategyResponse, UploadedFile, CharacterConfig, BorderStyle } from './types';
 import { ensureApiKey, generateThumbnailStrategy, generateThumbnailImage, editThumbnailImage } from './services/geminiService';
 import { Loader2 } from 'lucide-react';
@@ -30,6 +31,7 @@ const App: React.FC = () => {
   
   // Modals State
   const [isHelpOpen, setIsHelpOpen] = useState(false);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
   useEffect(() => {
     // Initial API key check (Built-in selection)
@@ -154,17 +156,19 @@ const App: React.FC = () => {
             <h3 className="text-red-500 text-xl font-bold mb-2">오류가 발생했습니다</h3>
             <p className="text-gray-300 mb-6">{error}</p>
             <div className="flex gap-4 justify-center">
-              {isApiKeyError && window.aistudio && (
+              {isApiKeyError && (
                 <button 
                   onClick={async () => {
                     if (window.aistudio) {
                       await window.aistudio.openSelectKey();
-                      setError(null);
+                    } else {
+                      setIsSettingsOpen(true);
                     }
+                    setError(null);
                   }}
                   className="px-6 py-2 bg-naver-green hover:bg-[#02b350] text-white rounded-lg transition-colors font-bold"
                 >
-                  API 키 선택하기
+                  API 키 설정하기
                 </button>
               )}
               <button 
@@ -212,7 +216,7 @@ const App: React.FC = () => {
   return (
     <div className="min-h-screen bg-naver-light text-naver-text font-sans selection:bg-naver-green selection:text-white flex flex-col">
       <Header 
-        onOpenSettings={() => {}} // No-op as settings button is removed
+        onOpenSettings={() => setIsSettingsOpen(true)}
         onOpenHelp={() => setIsHelpOpen(true)}
       />
       <main className="pt-24 pb-12 container mx-auto flex-grow max-w-5xl">
@@ -223,6 +227,11 @@ const App: React.FC = () => {
       <HelpModal 
         isOpen={isHelpOpen} 
         onClose={() => setIsHelpOpen(false)} 
+      />
+
+      <SettingsModal
+        isOpen={isSettingsOpen}
+        onClose={() => setIsSettingsOpen(false)}
       />
     </div>
   );
