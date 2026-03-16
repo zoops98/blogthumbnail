@@ -4,9 +4,10 @@ import { X, Key, ExternalLink, CheckCircle2, AlertCircle } from 'lucide-react';
 interface SettingsModalProps {
   isOpen: boolean;
   onClose: () => void;
+  onSave?: () => void;
 }
 
-export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
+export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, onSave }) => {
   const [apiKey, setApiKey] = useState('');
   const [isSaved, setIsSaved] = useState(false);
   const [error, setError] = useState('');
@@ -35,6 +36,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
     localStorage.setItem('ZOOP_GEMINI_API_KEY', apiKey.trim());
     setIsSaved(true);
     setError('');
+    if (onSave) onSave();
     
     setTimeout(() => {
       onClose();
