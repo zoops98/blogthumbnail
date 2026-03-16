@@ -1,5 +1,5 @@
-import React from 'react';
-import { X, Key } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { X, Key, ExternalLink, CheckCircle2, AlertCircle } from 'lucide-react';
 
 interface SettingsModalProps {
   isOpen: boolean;
@@ -7,40 +7,130 @@ interface SettingsModalProps {
 }
 
 export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
+  const [apiKey, setApiKey] = useState('');
+  const [isSaved, setIsSaved] = useState(false);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    if (isOpen) {
+      const savedKey = localStorage.getItem('ZOOP_GEMINI_API_KEY') || '';
+      setApiKey(savedKey);
+      setIsSaved(false);
+      setError('');
+    }
+  }, [isOpen]);
+
+  const handleSave = () => {
+    if (!apiKey.trim()) {
+      setError('API 키를 입력해주세요.');
+      return;
+    }
+    
+    // Basic validation for Gemini API key (usually starts with AIza)
+    if (!apiKey.startsWith('AIza')) {
+      setError('올바른 Gemini API 키 형식이 아닌 것 같습니다. 다시 확인해주세요.');
+      return;
+    }
+
+    localStorage.setItem('ZOOP_GEMINI_API_KEY', apiKey.trim());
+    setIsSaved(true);
+    setError('');
+    
+    setTimeout(() => {
+      onClose();
+    }, 1500);
+  };
+
+  const handleRemove = () => {
+    localStorage.removeItem('ZOOP_GEMINI_API_KEY');
+    setApiKey('');
+    setIsSaved(false);
+  };
+
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={onClose}></div>
-      
-      <div className="relative bg-[#1a1a1a] border border-gray-700 rounded-2xl w-full max-w-md p-6 shadow-2xl animate-fade-in-up">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-bold text-white flex items-center gap-2">
-            <Key className="w-5 h-5 text-yt-red" />
+    <div className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
+      <div className="relative bg-white border border-naver-border rounded-[2.5rem] w-full max-w-md overflow-hidden shadow-elevated animate-slide-up flex flex-col">
+        
+        {/* Header */}
+        <div className="bg-naver-light/30 px-8 py-6 border-b border-naver-border flex items-center justify-between shrink-0">
+          <h2 className="text-xl font-black flex items-center gap-3 text-naver-text tracking-tight">
+            <Key className="text-naver-green w-6 h-6" />
             API 키 설정
           </h2>
-          <button onClick={onClose} className="text-gray-400 hover:text-white transition-colors">
-            <X className="w-6 h-6" />
+          <button 
+            onClick={onClose} 
+            className="p-2 rounded-xl hover:bg-naver-light text-naver-muted hover:text-naver-text transition-all"
+          >
+            <X className="w-5 h-5" />
           </button>
         </div>
 
-        <div className="space-y-6">
-          <div className="bg-gray-800/50 p-4 rounded-lg border border-gray-700">
-            <p className="text-gray-300 text-sm leading-relaxed">
-              이 애플리케이션은 <strong>Google AI Studio</strong> 및 환경 변수를 통해 인증을 관리합니다.
+        {/* Content */}
+        <div className="p-8 space-y-6">
+          <div className="space-y-4">
+            <p className="text-naver-muted text-sm font-medium leading-relaxed">
+              Gemini API 키를 입력하여 서비스를 이용할 수 있습니다. 입력하신 키는 브라우저의 로컬 스토리지에만 안전하게 저장됩니다.
             </p>
-            <p className="text-gray-400 text-xs mt-2">
-              별도의 API 키 입력이 필요하지 않습니다.
-            </p>
+            
+            <div className="relative">
+              <input
+                type="password"
+                value={apiKey}
+                onChange={(e) => {
+                  setApiKey(e.target.value);
+                  setError('');
+                  setIsSaved(false);
+                }}
+                placeholder="AIza..."
+                className={`w-full px-5 py-4 bg-naver-light border ${error ? 'border-red-400' : 'border-naver-border'} rounded-2xl text-naver-text font-medium focus:outline-none focus:ring-2 ${error ? 'focus:ring-red-100' : 'focus:ring-naver-green/20'} transition-all`}
+              />
+              {isSaved && (
+                <div className="absolute right-4 top-1/2 -translate-y-1/2 text-naver-green flex items-center gap-1 animate-fade-in">
+                  <CheckCircle2 className="w-5 h-5" />
+                  <span className="text-xs font-bold">저장됨</span>
+                </div>
+              )}
+            </div>
+
+            {error && (
+              <div className="flex items-center gap-2 text-red-500 text-xs font-bold animate-fade-in">
+                <AlertCircle className="w-4 h-4" />
+                {error}
+              </div>
+            )}
           </div>
-          
-          <div className="text-center pt-2 border-t border-gray-700 mt-4">
-             <button 
-               onClick={onClose}
-               className="text-gray-500 text-sm hover:text-white transition-colors mt-2"
-             >
-               닫기
-             </button>
+
+          <div className="space-y-3">
+            <button
+              onClick={handleSave}
+              disabled={isSaved}
+              className={`w-full py-4 ${isSaved ? 'bg-naver-green/50 cursor-default' : 'bg-naver-green hover:bg-naver-darkGreen'} text-white rounded-2xl font-black text-lg transition-all shadow-green-glow flex items-center justify-center gap-2`}
+            >
+              {isSaved ? '저장 완료' : '설정 저장하기'}
+            </button>
+            
+            {localStorage.getItem('ZOOP_GEMINI_API_KEY') && (
+              <button
+                onClick={handleRemove}
+                className="w-full py-3 text-naver-muted hover:text-red-500 text-sm font-bold transition-all"
+              >
+                저장된 키 삭제하기
+              </button>
+            )}
+          </div>
+
+          <div className="pt-4 border-t border-naver-border">
+            <a 
+              href="https://aistudio.google.com/app/apikey" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="flex items-center justify-center gap-2 text-naver-muted hover:text-naver-green text-xs font-bold transition-all"
+            >
+              Gemini API 키가 없으신가요? 여기서 무료로 받기
+              <ExternalLink className="w-3 h-3" />
+            </a>
           </div>
         </div>
       </div>

@@ -6,12 +6,12 @@ interface HeaderProps {
   onOpenHelp: () => void;
 }
 
-export const Header: React.FC<HeaderProps> = ({ onOpenHelp }) => {
+export const Header: React.FC<HeaderProps> = ({ onOpenSettings, onOpenHelp }) => {
   const handleOpenKey = async () => {
     if (window.aistudio) {
       await window.aistudio.openSelectKey();
     } else {
-      alert("이 기능은 AI Studio 환경에서만 작동합니다. 배포 시에는 환경 변수(API_KEY)를 설정해주세요.");
+      onOpenSettings();
     }
   };
 
