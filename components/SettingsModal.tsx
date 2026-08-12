@@ -27,12 +27,6 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, o
       return;
     }
     
-    // Basic validation for Gemini API key (usually starts with AIza)
-    if (!apiKey.startsWith('AIza')) {
-      setError('올바른 Gemini API 키 형식이 아닌 것 같습니다. 다시 확인해주세요.');
-      return;
-    }
-
     localStorage.setItem('ZOOP_GEMINI_API_KEY', apiKey.trim());
     setIsSaved(true);
     setError('');
