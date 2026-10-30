@@ -2,6 +2,10 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import { TargetAudience, StrategyResponse, CharacterConfig, BorderStyle } from "../types";
 
+// Keep text and image models separate: Gemini Flash does not generate images.
+const STRATEGY_MODEL = 'gemini-3.8-flash';
+const IMAGE_MODEL = 'gemini-3-pro-image';
+
 /**
  * Helper to get the API key from various sources with priority.
  * 1. Environment variables (AI Studio or Build-time env)
@@ -136,7 +140,7 @@ export const generateThumbnailStrategy = async (
   }
 
   const response = await ai.models.generateContent({
-    model: 'gemini-2.5-flash',
+    model: STRATEGY_MODEL,
     contents: combinedContent,
     config: {
       systemInstruction: systemInstruction,
@@ -273,7 +277,7 @@ export const generateThumbnailImage = async (
   `;
 
   const response = await ai.models.generateContent({
-    model: 'gemini-3-pro-image-preview',
+    model: IMAGE_MODEL,
     contents: {
       parts: [{ text: finalPrompt }],
     },
@@ -307,7 +311,7 @@ export const editThumbnailImage = async (
   const base64Data = originalImageBase64.replace(/^data:image\/(png|jpeg|jpg);base64,/, '');
 
   const response = await ai.models.generateContent({
-    model: 'gemini-3-pro-image-preview',
+    model: IMAGE_MODEL,
     contents: {
       parts: [
         {
