@@ -204,9 +204,11 @@
       }
       .count-grid {
         display: grid;
-        grid-template-columns: repeat(6, 1fr);
+        grid-template-columns: repeat(5, 1fr);
         gap: 6px;
       }
+      .field label.page-number-option { display: flex; align-items: center; gap: 8px; min-height: 40px; cursor: pointer; }
+      .page-number-option input { width: 17px; height: 17px; accent-color: var(--purple); }
       .count-grid button,
       .ratio-grid button {
         border: 1px solid var(--line);
@@ -1248,9 +1250,12 @@
                   role="group"
                   aria-label="카드 개수"
                 ></div>
-                <p class="hint">표지 1장 + 핵심 내용 + 마무리 1장</p>
+                <p class="hint" id="count-hint"></p>
               </div>
             </fieldset>
+            <div class="field">
+              <label class="page-number-option"><input type="checkbox" id="show-page-numbers" checked>결과물에 페이지 번호 표시</label>
+            </div>
             <div class="field">
               <div class="field-title">카드 비율</div>
               <div
@@ -1922,10 +1927,12 @@
         "notebook study goals",
       ];
       EXAMPLE.forEach((card, i) => (card.imageKeywords = SAMPLE_KEYWORDS[i]));
+      const MIN_CARDS = 1, MAX_CARDS = 10;
       let state = {
         cards: structuredClone(EXAMPLE),
         index: 0,
         count: 7,
+        showPageNumbers: true,
         ratio: "1:1",
         color: "#142139",
         brand: "",
@@ -2040,8 +2047,8 @@
           const saved = JSON.parse(raw);
           if (
             !Number.isInteger(saved.cards?.length) ||
-            saved.cards.length < 5 ||
-            saved.cards.length > 10
+            saved.cards.length < MIN_CARDS ||
+            saved.cards.length > MAX_CARDS
           )
             throw new Error("invalid");
           let cards = validateCards(saved.cards, saved.cards.length, true);
@@ -2083,10 +2090,11 @@
             index: 0,
             count:
               Number.isInteger(saved.count) &&
-              saved.count >= 5 &&
-              saved.count <= 10
+              saved.count >= MIN_CARDS &&
+              saved.count <= MAX_CARDS
                 ? saved.count
                 : cards.length,
+            showPageNumbers: saved.showPageNumbers !== false,
             ratio: RATIOS[saved.ratio] ? saved.ratio : "1:1",
             color: /^#[\da-f]{6}$/i.test(saved.color) ? saved.color : "#142139",
             brand:
@@ -3430,7 +3438,8 @@
           600,
           1.2,
         );
-        paint(ctx, page, g.x1, y + (boxH - page.height) / 2, t.sub, "right");
+        if (state.showPageNumbers)
+          paint(ctx, page, g.x1, y + (boxH - page.height) / 2, t.sub, "right");
         return { size: label.size, bottom: y + Math.max(boxH, page.height) };
       }
       function drawFooter(ctx, index, total, t, g, sizes) {
@@ -4058,7 +4067,7 @@
             i +
             1 +
             " · " +
-            (i === 0
+            (state.cards.length === 1 ? "한 장 요약" : i === 0
               ? "표지"
               : i === state.cards.length - 1
                 ? "마무리"
@@ -4090,7 +4099,7 @@
           ? "디자인 예시"
           : "총 " + state.cards.length + "장의 이야기";
         $("card-kind").textContent =
-          i === 0
+          state.cards.length === 1 ? "한 장 요약" : i === 0
             ? "표지 · 시선을 잡는 첫 장"
             : i === state.cards.length - 1
               ? "마무리 · 요약과 행동 유도"
@@ -4141,6 +4150,10 @@
         $("brand-text").value = state.brand;
         $("model").value = state.model;
         $("count-label").textContent = state.count + "장";
+        $("count-hint").textContent = state.count === 1 ? "주제와 핵심 내용을 한 장에 담아요."
+          : state.count === 2 ? "표지 1장 + 핵심 내용과 마무리 1장"
+          : `표지 1장 + 핵심 내용 ${state.count - 2}장 + 마무리 1장`;
+        $("show-page-numbers").checked = state.showPageNumbers;
         document
           .querySelectorAll("[data-count]")
           .forEach((b) =>
@@ -4279,8 +4292,13 @@
         return error.message;
       }
       function buildPayload(topic, count, repair = false) {
+        const structure = count === 1
+          ? "제목, 핵심 정보와 구체적인 행동 제안을 한 장 안에서 완결하세요. 다음 장을 예고하지 마세요."
+          : count === 2
+            ? "1장은 주제와 핵심을 소개하는 표지, 2장은 구체적인 정보와 행동 제안을 함께 담은 마무리입니다."
+            : `1장은 표지, 중간 ${count - 2}장은 서로 다른 핵심 내용 하나씩, 마지막 장은 전체 요약과 구체적인 행동 제안입니다.`;
         const prompt = `한국어 카드뉴스 전문 에디터로서 정확히 ${count}장의 인스타그램 카드뉴스를 작성하세요. 모바일에서 한눈에 읽히도록 짧고 명확한 존댓말을 쓰세요.
-구성: 1장은 표지(후킹), 2~${count - 1}장은 서로 다른 핵심 내용 하나씩, ${count}장은 전체 요약과 구체적인 행동 유도입니다.
+구성: ${structure}
 분량(가독성을 위해 반드시 지키기):
 - label: 2~10자 소제목
 - title: 10~24자, 두 줄 이하. 길면 자연스러운 위치에 줄바꿈(\n) 1개
@@ -4320,7 +4338,9 @@
             required: ["title", "text"],
           },
         };
-        const layoutInstruction = ` 내용 박스(blocks): 본문 장(2~${count - 1}장)은 반드시 blocks를 2~3개 작성하세요. 이것이 카드의 주 내용입니다. 각 항목 title은 4~14자(영어 표현이면 그 표현 자체, 예: "enjoy + -ing"), text는 18~45자의 한 문장 설명 또는 예시입니다. 두 대상을 비교하는 장은 blocks를 정확히 2개로 구성하세요. 표지와 마지막 장의 blocks는 화면에 표시되지 않으니 짧게 2개만 작성하세요. 주제에 없는 사실이나 조건을 만들어내지 마세요.`;
+        const layoutInstruction = count <= 2
+          ? " 핵심 정보는 화면에 표시되는 title, body, highlight에 모두 담으세요. blocks는 표시되지 않으므로 카드마다 짧은 보조 항목 2개만 작성하세요."
+          : ` 내용 박스(blocks): 중간 본문 장에는 반드시 blocks를 2~3개 작성하세요. 이것이 카드의 주 내용입니다. 각 항목 title은 4~14자(영어 표현이면 그 표현 자체, 예: "enjoy + -ing"), text는 18~45자의 한 문장 설명 또는 예시입니다. 두 대상을 비교하는 장은 blocks를 정확히 2개로 구성하세요. 표지와 마지막 장의 blocks는 화면에 표시되지 않으니 짧게 2개만 작성하세요. 주제에 없는 사실이나 조건을 만들어내지 마세요.`;
         return {
           contents: [
             {
@@ -4659,6 +4679,7 @@
           $("download-one"),
           $("download-all"),
           $("editor-download"),
+          $("show-page-numbers"),
         ];
         buttons.forEach((b) => (b.disabled = true));
         try {
@@ -4709,7 +4730,13 @@
           buttons.forEach((b) => (b.disabled = false));
         }
       }
-      for (let count = 5; count <= 10; count++) {
+      $("show-page-numbers").onchange = (event) => {
+        state.showPageNumbers = event.target.checked;
+        renderTemplateOptions();
+        render(false);
+        persist();
+      };
+      for (let count = MIN_CARDS; count <= MAX_CARDS; count++) {
         const b = document.createElement("button");
         b.type = "button";
         b.textContent = count;
