@@ -1,0 +1,55 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:host { display:block; color:#242336; font:14px/1.55 "Malgun Gothic","Apple SD Gothic Neo",sans-serif; }
+:host([hidden]) { display:none; }
+button:focus-visible, a:focus-visible, select:focus-visible, textarea:focus-visible, input:focus-visible { outline:3px solid #8a6ce4; outline-offset:2px }
+.thumb-studio { max-width:1536px; margin:auto; padding:30px 34px 40px }
+.studio-intro { margin-bottom:24px }
+.studio-intro h1 { font-size:27px; font-weight:800; letter-spacing:-1.3px; margin:0 0 6px }
+.studio-intro p { color:#686675 }
+.studio-grid { display:grid; grid-template-columns:minmax(290px,350px) minmax(0,1fr); align-items:start; gap:24px }
+.studio-panel { min-width:0; background:white; border:1px solid #e7e5ec; border-radius:17px }
+.controls { padding:22px }
+.pane-title,.output-heading,.utility-row { display:flex; align-items:center; gap:10px }
+.pane-title { margin-bottom:22px }
+.step-no { background:#f0ebff; color:#6043bf; padding:4px 7px; border-radius:6px; font-weight:800; font-size:12px }
+.pane-title h2,.output-heading h2 { font-size:17px; font-weight:800 }
+.topic-form label,.brief dt { display:block; font-weight:700; margin-bottom:8px }
+.topic-form form>div { border-radius:12px; box-shadow:none }
+.topic-form textarea { font:inherit; padding:13px; min-height:120px }
+.topic-form form>div>div:last-child { padding:8px; border-radius:0; gap:4px }
+.topic-form button { padding:10px; font-size:13px; min-height:44px; border-radius:8px }
+.topic-form svg { width:16px }
+.utility-row { margin-top:20px; border-top:1px solid #eeeaf2; padding-top:14px; flex-wrap:wrap }
+.utility-row button { display:flex; align-items:center; gap:6px; border-radius:8px; min-height:42px; padding:7px 10px; color:#544966; background:#f7f5fa; font-weight:650 }
+.output-heading { justify-content:space-between; padding:17px 22px; flex-wrap:wrap; border-bottom:1px solid #e7e5ec }
+.output-heading span { color:#655c77; font-size:12px }
+.preview-mat { padding:clamp(20px,4vw,64px); background:#faf9fc; border-radius:0 0 17px 17px }
+.cover { isolation:isolate; position:relative; overflow:hidden; display:flex; align-items:end; aspect-ratio:16/9; max-width:760px; margin:auto; padding:7%; border-radius:10px; background:#2a2144; color:white; box-shadow:0 10px 24px #2a214418 }
+.cover::before,.cover::after { content:""; position:absolute; z-index:-1; width:70%; aspect-ratio:1; border:clamp(24px,4vw,70px) solid #805fb8; border-radius:50%; right:-27%; top:-70% }
+.cover::after { width:53%; right:-21%; top:35%; border-color:#ae97d3 }
+.cover-type { max-width:82%; font-size:clamp(19px,2.8vw,44px); font-weight:850; letter-spacing:-.045em; line-height:1.26; overflow-wrap:anywhere; display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:4; overflow:hidden }
+.cover-type { word-break:keep-all }
+.brief dd { margin-bottom:18px; overflow-wrap:anywhere }
+.step-body>div:not(.topic-form) { min-height:0; padding:0; text-align:left }
+.step-body h2 { font-size:19px; margin-bottom:5px }
+.step-body h2+p { font-size:13px; margin-bottom:16px }
+.step-body .grid { gap:8px }
+.step-body .grid-cols-1 { grid-template-columns:1fr }
+.step-body .grid>button { padding:10px; border-radius:10px }
+.step-body .grid>button h3 { font-size:16px }
+.step-body .grid>button>div:first-child { margin-bottom:4px; gap:8px }
+.step-body .grid>button p { font-size:13px }
+.step-body .grid>button .w-16 { width:38px; height:38px }
+.step-body .w-full.rounded-2xl { padding:12px }
+.step-body .text-gray-300,.output .text-gray-300 { color:#51495e }
+.step-body .bg-red-900\/20,.output .bg-red-900\/20 { background:#fff6f6; padding:12px }
+.output>div:not(.preview-mat):not(.output-heading) { padding:20px; }
+.output .text-4xl { font-size:25px }
+@media(max-width:800px) {
+  .thumb-studio {padding:20px 14px}
+  .studio-grid {grid-template-columns:1fr; gap:14px}
+  .studio-intro h1 {font-size:23px}
+}

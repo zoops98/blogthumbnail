@@ -1,6 +1,4 @@
 import React, { useState, useCallback, useEffect } from 'react';
-import { Header } from './components/Header';
-import { Footer } from './components/Footer';
 import { TopicInput } from './components/TopicInput';
 import { AudienceSelector } from './components/AudienceSelector';
 import { CharacterSettings } from './components/CharacterSettings';
@@ -10,7 +8,7 @@ import { HelpModal } from './components/HelpModal';
 import { SettingsModal } from './components/SettingsModal';
 import { AppStep, TargetAudience, StrategyResponse, UploadedFile, CharacterConfig, BorderStyle } from './types';
 import { ensureApiKey, generateThumbnailStrategy, generateThumbnailImage, editThumbnailImage } from './services/geminiService';
-import { Loader2 } from 'lucide-react';
+import { Loader2, KeyRound, CircleHelp } from 'lucide-react';
 
 const App: React.FC = () => {
   const [step, setStep] = useState<AppStep>(AppStep.TOPIC);
@@ -185,7 +183,7 @@ const App: React.FC = () => {
 
     switch (step) {
       case AppStep.TOPIC:
-        return <TopicInput onSubmit={handleTopicSubmit} />;
+        return <TopicInput input={topic} setInput={setTopic} onSubmit={handleTopicSubmit} />;
       case AppStep.CHARACTER:
         return <CharacterSettings onComplete={handleCharacterSubmit} />;
       case AppStep.AUDIENCE:
@@ -213,16 +211,33 @@ const App: React.FC = () => {
     }
   };
 
+  const planning = step === AppStep.STRATEGY || step === AppStep.IMAGE;
+  const steps = [AppStep.TOPIC, AppStep.CHARACTER, AppStep.AUDIENCE, AppStep.STRATEGY, AppStep.IMAGE];
+  const stepNames = ['주제 입력', '피사체 설정', '독자 선택', '문구와 디자인', '완성 이미지'];
+  const current = steps.indexOf(step);
+  const displayTitle = topic.trim() || uploadedFile?.name || '블로그 제목을 입력하세요';
   return (
-    <div className="min-h-screen bg-naver-light text-naver-text font-sans selection:bg-naver-green selection:text-white flex flex-col">
-      <Header 
-        onOpenSettings={() => setIsSettingsOpen(true)}
-        onOpenHelp={() => setIsHelpOpen(true)}
-      />
-      <main className="pt-24 pb-12 container mx-auto flex-grow max-w-5xl">
-        {renderContent()}
-      </main>
-      <Footer />
+    <div className="thumb-studio">
+      <section className="studio-intro">
+        <h1>블로그 썸네일 만들기</h1>
+        <p>제목이나 문서를 넣고 독자층을 선택해 두 가지 대표 이미지를 만드세요.</p>
+      </section>
+      <div className="studio-grid">
+        <aside className="studio-panel controls">
+          <div className="pane-title"><span className="step-no">{String(current + 1).padStart(2,'0')}</span><h2>{stepNames[current]}</h2></div>
+          {!planning ? <div className="step-body">{renderContent()}</div> :
+            <dl className="brief"><dt>주제</dt><dd>{displayTitle}</dd><dt>독자층</dt><dd>{audience}</dd></dl>}
+          <div className="utility-row">
+            <button onClick={() => window.aistudio ? window.aistudio.openSelectKey() : setIsSettingsOpen(true)}><KeyRound size={16}/> API 키 설정</button>
+            <button onClick={() => setIsHelpOpen(true)}><CircleHelp size={16}/> 사용법</button>
+          </div>
+        </aside>
+        <section className="studio-panel output" aria-label="썸네일 미리보기">
+          <div className="output-heading"><h2>{planning ? stepNames[current] : '썸네일 미리보기'}</h2><span>{planning ? 'A / B' : '제목 배치 예시 · 16:9'}</span></div>
+          {planning ? renderContent() :
+            <div className="preview-mat"><div className="cover"><div className="cover-type">{displayTitle}</div></div></div>}
+        </section>
+      </div>
       
       <HelpModal 
         isOpen={isHelpOpen} 

@@ -4,10 +4,11 @@ import { UploadedFile } from '../types';
 
 interface TopicInputProps {
   onSubmit: (topic: string, file: UploadedFile | null) => void;
+  input: string;
+  setInput: (text: string) => void;
 }
 
-export const TopicInput: React.FC<TopicInputProps> = ({ onSubmit }) => {
-  const [input, setInput] = useState('');
+export const TopicInput: React.FC<TopicInputProps> = ({ onSubmit, input, setInput }) => {
   const [uploadedFile, setUploadedFile] = useState<UploadedFile | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -19,7 +20,7 @@ export const TopicInput: React.FC<TopicInputProps> = ({ onSubmit }) => {
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
+    if (e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing) {
       e.preventDefault();
       handleSubmit(e as any);
     }
@@ -52,28 +53,19 @@ export const TopicInput: React.FC<TopicInputProps> = ({ onSubmit }) => {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-[60vh] w-full animate-slide-up px-4">
-      <h1 className="text-4xl md:text-6xl font-black text-center mb-6 leading-tight text-naver-text tracking-tighter">
-        클릭을 부르는<br />
-        <span className="text-naver-green bg-naver-green/5 px-4 py-1 rounded-2xl inline-block mt-2">
-          블로그 썸네일 기획
-        </span>
-      </h1>
-      <p className="text-naver-muted text-base md:text-lg mb-12 text-center max-w-lg font-medium">
-        블로그 <strong>제목</strong>을 입력하거나 관련 <strong>문서</strong>를 업로드하세요.<br />
-        AI가 내용을 분석하여 최적의 썸네일을 제안합니다.
-      </p>
+    <div className="topic-form">
+      <label htmlFor="thumbnail-topic">블로그 제목 또는 주제</label>
       
       <form onSubmit={handleSubmit} className="w-full max-w-2xl relative group">
         <div className="relative bg-white border border-naver-border rounded-3xl p-1 shadow-elevated flex flex-col overflow-hidden transition-all duration-500 group-focus-within:border-naver-green group-focus-within:shadow-green-glow">
           <textarea
+            id="thumbnail-topic"
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder="예: [영어공부] 스스로 집에서 영어숙제를 하게 하는 마법"
             className="w-full bg-transparent text-naver-text text-xl px-8 py-10 outline-none placeholder-gray-300 resize-none min-h-[160px] max-h-[400px] font-medium leading-relaxed"
             rows={4}
-            autoFocus
           />
           
           {/* File Preview Area */}
@@ -114,7 +106,7 @@ export const TopicInput: React.FC<TopicInputProps> = ({ onSubmit }) => {
                 title="문서 파일 업로드 (.txt, .md 등)"
               >
                 <Paperclip className="w-5 h-5" />
-                <span className="hidden sm:inline">문서 업로드</span>
+                <span>문서 업로드</span>
               </button>
             </div>
 
